@@ -1,0 +1,77 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int          @id @default(autoincrement())
+  email          String       @unique
+  hashedPassword String?
+  roles          Role[]       @default([USER])
+  name           String
+  photoUrl       String?
+  refreshToken   String?
+  rating         Int          @default(0)
+  googleAuth     Boolean      @default(false)
+  quizResults    QuizResult[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Question {
+  id            Int        @id @default(autoincrement())
+  title         String     @unique
+  answers       String[]
+  correctAnswer Int
+  difficulty    Difficulty
+  quizzes       Quiz[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Quiz {
+  id           Int          @id @default(autoincrement())
+  title        String
+  descriptions String
+  questions    Question[]
+  categories   Categories[]
+  results      QuizResult[]
+  difficulty   Difficulty   @default(EASY)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model QuizResult {
+  id        Int      @id @default(autoincrement())
+  value     Int
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId    Int
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Categories {
+  id        Int      @id @default(autoincrement())
+  title     String   @unique
+  quizzes   Quiz[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Role {
+  USER
+  ADMIN
+}
